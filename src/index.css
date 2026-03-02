@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* ── Dark-mode via .dark class on <html> ── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Custom theme tokens ── */
+@theme {
+  --color-primary-50:  #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+
+  /*
+   * Font stack:
+   *  - Latin characters  → Inter
+   *  - Thai characters   → Sarabun  (browser picks automatically via unicode-range)
+   *  - Fallback          → system-ui
+   */
+  --font-sans: "Inter", "Sarabun", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Base reset ── */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Improve Thai line-height (ตัวอักษรไทยสูงกว่า Latin) */
+  line-height: 1.75;
+}
+
+/* Thai text gets slightly more line-height for readability */
+:lang(th) {
+  line-height: 1.9;
+  word-break: keep-all;
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #a5b4fc;
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #4338ca;
+}
+
+/* ── Selection color ── */
+::selection {
+  background: #c7d2fe;
+  color: #1e1b4b;
+}
+.dark ::selection {
+  background: #4338ca;
+  color: #e0e7ff;
+}
