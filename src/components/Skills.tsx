@@ -4,181 +4,157 @@ import {
   Figma, Cloud, Github, BookOpen, BookText, Palette, Send, Server, Share2,
 } from 'lucide-react'
 import { skillGroups, type SkillLevel } from '../data/data'
+import { skills } from '../i18n/content'
+import { useLanguage } from '../i18n/LanguageContext'
+import { LineReveal, DrawLine } from '../lib/motion'
 
 const iconMap: Record<string, React.ElementType> = {
   GraduationCap, Code2, Network,
 }
 
 const toolsList: { name: string; icon: React.ElementType }[] = [
-  { name: 'VS Code',              icon: Code2         },
-  { name: 'Figma',                icon: Figma         },
-  { name: 'Tailwind CSS',         icon: Palette       },
-  { name: 'Postman',              icon: Send          },
-  { name: 'XAMPP',                icon: Server        },
-  { name: 'Cisco Packet Tracer',  icon: Network       },
-  { name: 'Draw.io',              icon: Share2        },
-  { name: 'Huawei Cloud Console', icon: Cloud         },
-  { name: 'GitHub Classroom',     icon: Github        },
-  { name: 'Google Classroom',     icon: BookOpen      },
-  { name: 'VitePress',            icon: BookText      },
+  { name: 'VS Code', icon: Code2 },
+  { name: 'Figma', icon: Figma },
+  { name: 'Tailwind CSS', icon: Palette },
+  { name: 'Postman', icon: Send },
+  { name: 'XAMPP', icon: Server },
+  { name: 'Cisco Packet Tracer', icon: Network },
+  { name: 'Draw.io', icon: Share2 },
+  { name: 'Huawei Cloud Console', icon: Cloud },
+  { name: 'GitHub Classroom', icon: Github },
+  { name: 'Google Classroom', icon: BookOpen },
+  { name: 'VitePress', icon: BookText },
 ]
 
-const levelConfig: Record<SkillLevel, { label: string; labelTh: string; chip: string; dot: string }> = {
-  proficient: {
-    label:   'Proficient',
-    labelTh: 'คล่องแคล่ว',
-    chip:    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
-    dot:     'bg-emerald-500',
-  },
-  functional: {
-    label:   'Functional',
-    labelTh: 'ใช้งานได้',
-    chip:    'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
-    dot:     'bg-blue-500',
-  },
-  learning: {
-    label:   'Learning',
-    labelTh: 'กำลังพัฒนา',
-    chip:    'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
-    dot:     'bg-amber-400',
-  },
+// Monochrome + single-accent level marks (editorial discipline)
+const levelDot: Record<SkillLevel, string> = {
+  proficient: 'bg-primary-600 dark:bg-primary-400',
+  functional: 'bg-ink-400 dark:bg-ink-500',
+  learning: 'border border-ink-300 dark:border-ink-600',
 }
 
-const headerColor: Record<string, string> = {
-  indigo:  'from-indigo-500 to-violet-600',
-  blue:    'from-blue-500 to-cyan-600',
-  emerald: 'from-emerald-500 to-teal-600',
-}
-
-const fadeUp = {
+const ease = [0.22, 1, 0.36, 1] as const
+const reveal = {
   hidden: { opacity: 0, y: 20 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.45 } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease } },
 }
-const stagger = { show: { transition: { staggerChildren: 0.08 } } }
-
-function SkillChip({ name, level }: { name: string; level: SkillLevel }) {
-  const cfg = levelConfig[level]
-  return (
-    <motion.div
-      variants={fadeUp}
-      className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600/50 hover:border-slate-300 dark:hover:border-slate-500 transition-colors"
-    >
-      <div className="flex items-center gap-2 min-w-0">
-        <span className={`shrink-0 w-2 h-2 rounded-full ${cfg.dot}`} />
-        <span className="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">
-          {name}
-        </span>
-      </div>
-      <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.chip}`}>
-        {cfg.label}
-      </span>
-    </motion.div>
-  )
-}
-
-function SkillGroupCard({ group }: { group: typeof skillGroups[number] }) {
-  const Icon     = iconMap[group.icon] ?? GraduationCap
-  const gradient = headerColor[group.color] ?? headerColor['indigo']
-  return (
-    <motion.div
-      variants={fadeUp}
-      className="flex flex-col bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:shadow-lg dark:hover:shadow-slate-900/50 transition-all duration-200"
-    >
-      <div className={`px-5 py-4 bg-linear-to-r ${gradient} flex items-center gap-3`}>
-        <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white">
-          <Icon size={18} />
-        </div>
-        <div>
-          <h3 className="font-bold text-white text-sm">{group.category}</h3>
-          <p className="text-white/70 text-[11px]">{group.skills.length} skills</p>
-        </div>
-      </div>
-      <motion.div
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true }}
-        variants={stagger}
-        className="p-4 flex flex-col gap-2"
-      >
-        {group.skills.map(skill => (
-          <SkillChip key={skill.name} name={skill.name} level={skill.level} />
-        ))}
-      </motion.div>
-    </motion.div>
-  )
-}
+const stagger = { show: { transition: { staggerChildren: 0.06 } } }
 
 export default function Skills() {
-  return (
-    <section id="skills" className="py-24 bg-white dark:bg-slate-900">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+  const { lang } = useLanguage()
 
+  return (
+    <section
+      id="skills"
+      className="border-t border-ink-200 bg-white py-16 text-ink-950 dark:border-ink-800 dark:bg-ink-900/40 dark:text-ink-50 sm:py-24 lg:py-32"
+    >
+      <div className="mx-auto max-w-6xl px-6 lg:px-8">
+        {/* ── Header ── */}
         <motion.div
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-80px' }}
           variants={stagger}
-          className="mb-12"
+          className="mb-12 max-w-2xl"
         >
-          <motion.p variants={fadeUp} className="text-sm font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-widest mb-2">
-            Competencies
-          </motion.p>
-          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-            Skills &amp; Expertise
-          </motion.h2>
-          <motion.p variants={fadeUp} className="text-slate-500 dark:text-slate-400 max-w-2xl">
-            ระดับทักษะประเมินจากความสามารถใช้งานจริงในห้องเรียนและโปรเจกต์จริง — ไม่ใช่ตัวเลขสมมติ
+          <motion.div
+            variants={reveal}
+            className="mb-6 flex items-center gap-4 text-ink-500 dark:text-ink-400"
+          >
+            <span className="section-index text-xs font-semibold text-primary-600 dark:text-primary-400">
+              {skills.index}
+            </span>
+            <DrawLine className="h-px w-10 bg-ink-300 dark:bg-ink-700" />
+            <span className="eyebrow">{skills.eyebrow[lang]}</span>
+          </motion.div>
+          <h2 className="font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">
+            <LineReveal>{skills.title[lang]}</LineReveal>
+          </h2>
+          <motion.p variants={reveal} className="mt-5 text-ink-600 dark:text-ink-300">
+            {skills.intro[lang]}
           </motion.p>
         </motion.div>
 
-        {/* Level legend */}
+        {/* ── Legend ── */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
-          className="flex flex-wrap gap-3 mb-8"
+          className="mb-10 flex flex-wrap gap-x-6 gap-y-2"
         >
-          {(Object.entries(levelConfig) as [SkillLevel, typeof levelConfig[SkillLevel]][]).map(([, cfg]) => (
+          {(Object.keys(levelDot) as SkillLevel[]).map(level => (
             <span
-              key={cfg.label}
-              className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${cfg.chip}`}
+              key={level}
+              className="inline-flex items-center gap-2 text-xs font-medium text-ink-500 dark:text-ink-400"
             >
-              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-              {cfg.label} — {cfg.labelTh}
+              <span className={`h-2 w-2 rounded-full ${levelDot[level]}`} />
+              {skills.levelLabels[level][lang]}
             </span>
           ))}
         </motion.div>
 
-        {/* Skill group cards */}
+        {/* ── Skill groups ── */}
         <motion.div
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-60px' }}
           variants={stagger}
-          className="grid md:grid-cols-2 xl:grid-cols-3 gap-6"
+          className="grid gap-x-12 gap-y-10 md:grid-cols-2 xl:grid-cols-3"
         >
-          {skillGroups.map(group => (
-            <SkillGroupCard key={group.category} group={group} />
-          ))}
+          {skillGroups.map(group => {
+            const Icon = iconMap[group.icon] ?? GraduationCap
+            const label = skills.groupLabels[group.category]?.[lang] ?? group.category
+            return (
+              <motion.div key={group.category} variants={reveal}>
+                {/* Group head */}
+                <div className="mb-5 flex items-center gap-3 border-b border-ink-200 pb-3 dark:border-ink-800">
+                  <Icon size={18} className="text-primary-600 dark:text-primary-400" />
+                  <h3 className="font-display text-lg font-semibold text-ink-950 dark:text-ink-50">
+                    {label}
+                  </h3>
+                  <span className="section-index ml-auto text-xs text-ink-500 dark:text-ink-400">
+                    {String(group.skills.length).padStart(2, '0')}
+                  </span>
+                </div>
+                {/* Skills */}
+                <ul className="flex flex-col gap-3">
+                  {group.skills.map(skill => (
+                    <li
+                      key={skill.name}
+                      className="flex items-center justify-between gap-3"
+                    >
+                      <span className="flex items-center gap-2.5 text-sm text-ink-700 dark:text-ink-200">
+                        <span className={`h-2 w-2 shrink-0 rounded-full ${levelDot[skill.level]}`} />
+                        {skill.name}
+                      </span>
+                      <span className="shrink-0 text-[11px] font-medium text-ink-500 dark:text-ink-400">
+                        {skills.levelLabels[skill.level][lang]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            )
+          })}
         </motion.div>
 
-        {/* Tools tag cloud */}
+        {/* ── Tools ── */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="mt-12 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700"
+          transition={{ duration: 0.5, delay: 0.1, ease }}
+          className="mt-16 border-t border-ink-200 pt-10 dark:border-ink-800"
         >
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">
-            Tools &amp; Environment
+          <p className="eyebrow mb-5 text-ink-500 dark:text-ink-400">
+            {skills.toolsHeading[lang]}
           </p>
           <div className="flex flex-wrap gap-2">
             {toolsList.map(({ name, icon: ToolIcon }) => (
               <span
                 key={name}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-400 dark:hover:border-primary-600 hover:text-primary-600 dark:hover:text-primary-400 transition-colors cursor-default"
+                className="inline-flex cursor-default items-center gap-1.5 rounded-full border border-ink-200 px-3 py-1 text-xs font-medium text-ink-600 transition-colors hover:border-primary-600 hover:text-primary-600 dark:border-ink-700 dark:text-ink-300 dark:hover:border-primary-400 dark:hover:text-primary-400"
               >
                 <ToolIcon size={12} className="shrink-0" />
                 {name}
@@ -186,7 +162,6 @@ export default function Skills() {
             ))}
           </div>
         </motion.div>
-
       </div>
     </section>
   )

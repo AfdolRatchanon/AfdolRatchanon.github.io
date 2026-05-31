@@ -1,217 +1,193 @@
 import { motion } from 'framer-motion'
-import {
-  Cloud, Network, BookOpen, Users, Wifi,
-  CheckCircle2, ExternalLink, Calendar, Hash,
-} from 'lucide-react'
-import { personalInfo, aboutBlurbs, certifications } from '../data/data'
+import { ArrowUpRight, BadgeCheck } from 'lucide-react'
+import { certifications } from '../data/data'
+import { about } from '../i18n/content'
+import { useLanguage } from '../i18n/LanguageContext'
+import { LineReveal, DrawLine } from '../lib/motion'
 
-// ── Icon map ──────────────────────────────────
-const iconMap: Record<string, React.ElementType> = {
-  Cloud, Network, BookOpen, Users,
+const ease = [0.22, 1, 0.36, 1] as const
+
+const reveal = {
+  hidden: { opacity: 0, y: 22 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease } },
 }
+const stagger = { show: { transition: { staggerChildren: 0.08 } } }
 
-const certColorMap: Record<string, { outer: string; inner: string; badge: string }> = {
-  sky:    { outer: 'from-sky-400 to-cyan-500',     inner: 'bg-sky-50 dark:bg-sky-900/30',    badge: 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300' },
-  blue:   { outer: 'from-blue-400 to-indigo-500',  inner: 'bg-blue-50 dark:bg-blue-900/30',  badge: 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300' },
-  violet: { outer: 'from-violet-400 to-purple-500',inner: 'bg-violet-50 dark:bg-violet-900/30',badge: 'bg-violet-100 dark:bg-violet-900/60 text-violet-700 dark:text-violet-300' },
-}
-
-// Maps icon names from data.ts to Lucide components
-const blurbIconMap: Record<string, React.ElementType> = {
-  BookOpen, Wifi, Cloud, Users,
-}
-
-// ── Variants ─────────────────────────────────
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.5 } },
-}
-
-const stagger = {
-  show: { transition: { staggerChildren: 0.1 } },
-}
-
-// ── Certification Card ────────────────────────
-function CertCard({ cert }: { cert: typeof certifications[number] }) {
-  const colors = certColorMap[cert.color] ?? certColorMap['blue']
-  const CertIcon = iconMap[cert.icon] ?? Cloud
-
-  return (
-    <motion.div
-      variants={fadeUp}
-      className={`relative flex flex-col gap-3 p-5 rounded-2xl border ${
-        cert.highlight
-          ? 'border-sky-300 dark:border-sky-700 bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-sky-900/20 dark:to-cyan-900/20'
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'
-      } hover:shadow-lg dark:hover:shadow-slate-900/50 transition-all duration-200`}
-    >
-      {cert.highlight && (
-        <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500 text-white uppercase tracking-wide">
-          Featured
-        </span>
-      )}
-
-      <div className="flex items-center gap-3">
-        <div className={`flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br ${colors.outer}`}>
-          <CertIcon size={20} className="text-white" />
-        </div>
-        <div>
-          <h4 className="font-bold text-slate-800 dark:text-white text-sm">{cert.name}</h4>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{cert.issuer}</p>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2 text-[11px]">
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold ${colors.badge}`}>
-          <Calendar size={10} /> Issued {cert.issued}
-        </span>
-        {cert.expires && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-            Valid until {cert.expires}
-          </span>
-        )}
-        {cert.credentialId && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-semibold bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">
-            <Hash size={10} /> {cert.credentialId}
-          </span>
-        )}
-      </div>
-
-      {cert.href !== '#' && (
-        <a
-          href={cert.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium mt-1"
-        >
-          View credential <ExternalLink size={11} />
-        </a>
-      )}
-    </motion.div>
-  )
-}
-
-// ── Dynamic teaching-experience helper ────────
-function useSbacMonths() {
-  const start = new Date('2024-08-26')
-  const now   = new Date()
-  const mo    = (now.getFullYear() - start.getFullYear()) * 12 + now.getMonth() - start.getMonth()
-  return mo < 12 ? `${mo} เดือน` : mo < 24 ? '1+ ปี' : `${Math.floor(mo / 12)}+ ปี`
-}
-
-// ── Main component ────────────────────────────
 export default function About() {
-  const sbacExp = useSbacMonths()
-  return (
-    <section id="about" className="py-24 bg-slate-50 dark:bg-slate-950">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+  const { lang } = useLanguage()
+  const cert = certifications[0]
 
-        {/* Section header */}
+  return (
+    <section
+      id="about"
+      className="bg-ink-50 py-16 text-ink-950 dark:bg-ink-950 dark:text-ink-50 sm:py-24 lg:py-32"
+    >
+      <div className="mx-auto max-w-6xl px-6 lg:px-8">
+        {/* ── Section header ── */}
         <motion.div
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-80px' }}
           variants={stagger}
-          className="mb-14"
+          className="mb-16 max-w-3xl"
         >
-          <motion.p variants={fadeUp} className="text-sm font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-widest mb-2">
-            Who I Am
-          </motion.p>
-          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-            About &amp; Certifications
-          </motion.h2>
-          <motion.p variants={fadeUp} className="text-slate-500 dark:text-slate-400 max-w-2xl">
-            A glimpse into my background, interests, and professional credentials.
-          </motion.p>
+          <motion.div
+            variants={reveal}
+            className="mb-6 flex items-center gap-4 text-ink-500 dark:text-ink-400"
+          >
+            <span className="section-index text-xs font-semibold text-primary-600 dark:text-primary-400">
+              {about.index}
+            </span>
+            <DrawLine className="h-px w-10 bg-ink-300 dark:bg-ink-700" />
+            <span className="eyebrow">{about.eyebrow[lang]}</span>
+          </motion.div>
+          <h2 className="font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">
+            <LineReveal>{about.title[lang]}</LineReveal>
+          </h2>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
-
-          {/* Left – personal blurbs */}
+        {/* ── Narrative + photo essay ── */}
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-12">
+          {/* Left: narrative */}
           <motion.div
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: '-60px' }}
             variants={stagger}
+            className="lg:col-span-7"
           >
-            {/* Short bio */}
-            <motion.div variants={fadeUp} className="mb-8 p-6 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-primary-400 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
-                  R
-                </div>
-                <div>
-                  <p className="font-bold text-slate-800 dark:text-white">{personalInfo.nameEn}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{personalInfo.title} · {personalInfo.institutionShort}</p>
-                </div>
-              </div>
-              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{personalInfo.bio}</p>
-              <p className="text-sm text-slate-400 dark:text-slate-500 leading-relaxed mt-3 border-t border-slate-100 dark:border-slate-700 pt-3">
-                {personalInfo.bioTh}
-              </p>
-            </motion.div>
+            {about.paragraphs[lang].map((para, i) => (
+              <motion.p
+                key={i}
+                variants={reveal}
+                className={`text-ink-600 dark:text-ink-300 ${i === 0
+                  ? 'text-lg leading-relaxed first-letter:float-left first-letter:mr-3 first-letter:font-display first-letter:text-6xl first-letter:font-semibold first-letter:leading-[0.8] first-letter:text-primary-600 dark:first-letter:text-primary-400'
+                  : 'mt-6 leading-relaxed'
+                  }`}
+              >
+                {para}
+              </motion.p>
+            ))}
 
-            {/* Blurb grid */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              {aboutBlurbs.map(blurb => {
-                const BlurbIcon = blurbIconMap[blurb.icon] ?? BookOpen
-                return (
-                  <motion.div
-                    key={blurb.title}
-                    variants={fadeUp}
-                    className="flex flex-col gap-2 p-4 rounded-xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-700 transition-colors"
-                  >
-                    <BlurbIcon size={18} className="text-primary-500" />
-                    <h4 className="font-semibold text-slate-800 dark:text-white text-sm">{blurb.title}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed whitespace-pre-line">
-                      {blurb.body}
-                    </p>
-                  </motion.div>
-                )
-              })}
-            </div>
-          </motion.div>
-
-          {/* Right – certifications */}
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: '-60px' }}
-            variants={stagger}
-          >
-            <motion.div variants={fadeUp} className="flex items-center gap-2 mb-6">
-              <CheckCircle2 size={18} className="text-emerald-500" />
-              <h3 className="font-bold text-slate-800 dark:text-white">Professional Certifications</h3>
-            </motion.div>
-
-            <div className="flex flex-col gap-4">
-              {certifications.map(cert => (
-                <CertCard key={cert.name} cert={cert} />
-              ))}
-            </div>
-
-            {/* Quick stats */}
-            <motion.div
-              variants={fadeUp}
-              className="mt-6 grid grid-cols-3 gap-3"
+            {/* Pull quote */}
+            <motion.blockquote
+              variants={reveal}
+              className="my-10 border-l-2 border-primary-600 pl-6 dark:border-primary-400"
             >
-              {[
-                { label: 'ประสบการณ์สอน', value: sbacExp },
-                { label: 'ฝึกสอน', value: '1 ปี' },
-                { label: 'Certifications', value: `${certifications.length}` },
-              ].map(stat => (
-                <div
-                  key={stat.label}
-                  className="text-center p-4 rounded-xl bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
-                >
-                  <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">{stat.value}</p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{stat.label}</p>
-                </div>
-              ))}
-            </motion.div>
+              <p className="font-display text-2xl font-medium italic leading-snug text-ink-900 dark:text-ink-100 sm:text-3xl">
+                “{about.pullQuote[lang]}”
+              </p>
+              <cite className="eyebrow mt-4 block not-italic text-ink-500 dark:text-ink-400">
+                {about.pullQuoteAttr[lang]}
+              </cite>
+            </motion.blockquote>
+
+            {/* Credential card */}
+            <motion.a
+              variants={reveal}
+              href={cert.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-4 rounded-sm border border-ink-200 bg-white p-5 transition-colors duration-200 hover:border-primary-600 dark:border-ink-800 dark:bg-ink-900/50 dark:hover:border-primary-400"
+            >
+              <BadgeCheck
+                size={28}
+                className="shrink-0 text-primary-600 dark:text-primary-400"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="eyebrow text-ink-500 dark:text-ink-400">
+                  {about.credentialHeading[lang]}
+                </p>
+                <p className="font-display text-lg font-semibold leading-tight text-ink-950 dark:text-ink-50">
+                  {cert.name}
+                </p>
+                <p className="text-xs text-ink-500 dark:text-ink-400">
+                  {cert.issuer} · {cert.issued}
+                  {cert.expires ? ` – ${cert.expires}` : ''}
+                </p>
+              </div>
+              <span className="flex items-center gap-1 text-xs font-semibold text-primary-600 dark:text-primary-400">
+                {about.viewCredential[lang]}
+                <ArrowUpRight
+                  size={14}
+                  className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </span>
+            </motion.a>
           </motion.div>
 
+          {/* Right: photo essay — the journey */}
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: '-60px' }}
+            variants={stagger}
+            className="lg:col-span-5"
+          >
+            <motion.p
+              variants={reveal}
+              className="eyebrow mb-5 text-ink-500 dark:text-ink-400"
+            >
+              {about.journeyHeading[lang]}
+            </motion.p>
+            <div className="flex flex-col gap-4">
+              {about.photos.map((photo, i) => (
+                <motion.figure
+                  key={i}
+                  variants={reveal}
+                  className="group relative overflow-hidden rounded-sm bg-ink-200 dark:bg-ink-800"
+                >
+                  <img
+                    src={photo.src}
+                    alt={photo.caption[lang]}
+                    loading="lazy"
+                    style={{ objectPosition: photo.pos, aspectRatio: photo.aspect }}
+                    className="w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                  />
+                  <figcaption className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-ink-950/85 via-ink-950/20 to-transparent p-4">
+                    <span className="text-sm font-medium text-white">
+                      {photo.caption[lang]}
+                    </span>
+                    <span className="section-index shrink-0 text-xs font-semibold text-white/70">
+                      {photo.year}
+                    </span>
+                  </figcaption>
+                </motion.figure>
+              ))}
+            </div>
+          </motion.div>
         </div>
+
+        {/* ── Facets ── */}
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: '-60px' }}
+          variants={stagger}
+          className="mt-20 border-t border-ink-200 pt-12 dark:border-ink-800"
+        >
+          <motion.p
+            variants={reveal}
+            className="eyebrow mb-10 text-ink-500 dark:text-ink-400"
+          >
+            {about.facetsHeading[lang]}
+          </motion.p>
+          <div className="grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+            {about.facets.map((facet, i) => (
+              <motion.div key={i} variants={reveal}>
+                <span className="section-index text-xs font-semibold text-primary-600 dark:text-primary-400">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <h3 className="font-display mt-3 text-lg font-semibold text-ink-950 dark:text-ink-50">
+                  {facet.title[lang]}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-500 dark:text-ink-400">
+                  {facet.body[lang]}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </section>
   )

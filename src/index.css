@@ -3,26 +3,47 @@
 /* ── Dark-mode via .dark class on <html> ── */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Custom theme tokens ── */
+/* ─────────────────────────────────────────────
+ *  Editorial design tokens
+ *  Premium Minimal + Editorial — monochrome ink/paper
+ *  with a single disciplined blue accent.
+ * ───────────────────────────────────────────── */
 @theme {
-  --color-primary-50:  #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #6366f1;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+  /* Accent — editorial blue (used sparingly).
+     Mapped onto the `primary-*` scale so existing
+     components inherit the new brand colour. */
+  --color-primary-50:  #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;   /* CTA / accent */
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Ink & paper — the monochrome editorial base */
+  --color-ink-50:  #fafafa;
+  --color-ink-100: #f4f4f5;
+  --color-ink-200: #e4e4e7;
+  --color-ink-300: #d4d4d8;
+  --color-ink-400: #a1a1aa;
+  --color-ink-500: #71717a;
+  --color-ink-600: #52525b;
+  --color-ink-700: #3f3f46;
+  --color-ink-800: #27272a;
+  --color-ink-900: #18181b;
+  --color-ink-950: #09090b;
 
   /*
-   * Font stack:
-   *  - Latin characters  → Inter
-   *  - Thai characters   → Sarabun  (browser picks automatically via unicode-range)
-   *  - Fallback          → system-ui
+   * Font stacks
+   *  - Headlines → Playfair Display (Latin) + Noto Serif Thai (Thai)
+   *  - Body/UI   → Inter (Latin) + Sarabun (Thai)
+   *  Browser selects the Thai face automatically via unicode coverage.
    */
-  --font-sans: "Inter", "Sarabun", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:  "Hanken Grotesk", "Sarabun", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", "Noto Serif Thai", Georgia, "Times New Roman", serif;
 }
 
 /* ── Base reset ── */
@@ -36,6 +57,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   /* Improve Thai line-height (ตัวอักษรไทยสูงกว่า Latin) */
   line-height: 1.75;
+  text-rendering: optimizeLegibility;
 }
 
 /* Thai text gets slightly more line-height for readability */
@@ -44,27 +66,93 @@ body {
   word-break: keep-all;
 }
 
+/* ─────────────────────────────────────────────
+ *  Editorial utility classes
+ * ───────────────────────────────────────────── */
+
+/* Serif display headline with tightened tracking */
+.font-display {
+  font-family: var(--font-serif);
+  letter-spacing: -0.015em;
+}
+/* Thai serif headlines need normal tracking + breathing room */
+:lang(th) .font-display {
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
+/* Small uppercase eyebrow / kicker label */
+.eyebrow {
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-weight: 600;
+  font-size: 0.6875rem; /* 11px */
+}
+:lang(th) .eyebrow {
+  letter-spacing: 0.1em;
+}
+
+/* Monospace-style section index numbers (01 / 02 …) */
+.section-index {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+}
+
+/* Hairline divider — the editorial rule line */
+.hairline {
+  border-color: var(--color-ink-200);
+}
+.dark .hairline {
+  border-color: var(--color-ink-800);
+}
+
 /* ── Custom scrollbar ── */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #a5b4fc;
+  background: var(--color-ink-300);
   border-radius: 9999px;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #4338ca;
+  background: var(--color-ink-700);
 }
 
 /* ── Selection color ── */
 ::selection {
-  background: #c7d2fe;
-  color: #1e1b4b;
+  background: var(--color-primary-600);
+  color: #ffffff;
 }
-.dark ::selection {
-  background: #4338ca;
-  color: #e0e7ff;
+
+/* ── Keyboard focus — visible ring on interactive elements ── */
+:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.dark :focus-visible {
+  outline-color: var(--color-primary-400);
+}
+/* Don't show the ring for mouse/touch users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Respect reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

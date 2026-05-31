@@ -5,7 +5,7 @@
 
 export const personalInfo = {
   nameEn: 'Ratchanon Semsayan',
-  nameTh: 'รัชนนท์ เสมสายัณห์',
+  nameTh: 'รัชชานนท์ เสมสายัณห์',
   title: 'IT Instructor',
   institution: 'Siam Business Technological College',
   institutionShort: 'SBAC',
@@ -376,7 +376,7 @@ export const experiences: ExperienceItem[] = [
   },
   {
     role: 'Student Teacher (ฝึกสอน)',
-    institution: 'Siam Business Technological College (SBAC)',
+    institution: 'Chetuphon Commercial College (CCC)',
     period: 'Academic Year 2022',
     periodTh: 'ปีการศึกษา 2565',
     location: 'Bangkok, Thailand',
@@ -396,7 +396,7 @@ export const aboutBlurbs = [
   {
     icon: 'BookOpen',
     title: 'Education',
-    body: "Bachelor's Degree in Computer Science / Information Technology\nSiam Business Technological College (SBAC)",
+    body: "Bachelor of Science in Technical Education (Computer Technology) — First Class Honours\nFaculty of Technical Education, King Mongkut's University of Technology North Bangkok (KMUTNB)",
   },
   {
     icon: 'Wifi',

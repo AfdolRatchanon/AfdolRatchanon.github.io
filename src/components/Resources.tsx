@@ -2,88 +2,70 @@ import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   Monitor, Server, Network, Cloud,
-  Search, Download, FileText, Presentation, Film, Link2, Archive,
-  ChevronRight,
+  Search, ArrowUpRight, FileText, Presentation, Film, Link2, Archive,
 } from 'lucide-react'
 import { resourceCategories, type ResourceItem, type ResourceCategory } from '../data/data'
+import { resources } from '../i18n/content'
+import { useLanguage } from '../i18n/LanguageContext'
+import { LineReveal, DrawLine } from '../lib/motion'
 
 // ── Icon maps ──────────────────────────────────
 const categoryIconMap: Record<string, React.ElementType> = {
   Monitor, Server, Network, Cloud,
 }
-
 const typeIconMap: Record<ResourceItem['type'], React.ElementType> = {
-  PDF: FileText,
-  Slide: Presentation,
-  Video: Film,
-  Link: Link2,
-  Zip: Archive,
+  PDF: FileText, Slide: Presentation, Video: Film, Link: Link2, Zip: Archive,
 }
 
-const colorMap: Record<string, { tab: string; badge: string; icon: string; card: string }> = {
-  blue: { tab: 'bg-blue-600 text-white', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300', icon: 'text-blue-500', card: 'border-blue-200 dark:border-blue-800' },
-  violet: { tab: 'bg-violet-600 text-white', badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300', icon: 'text-violet-500', card: 'border-violet-200 dark:border-violet-800' },
-  emerald: { tab: 'bg-emerald-600 text-white', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300', icon: 'text-emerald-500', card: 'border-emerald-200 dark:border-emerald-800' },
-  sky: { tab: 'bg-sky-600 text-white', badge: 'bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300', icon: 'text-sky-500', card: 'border-sky-200 dark:border-sky-800' },
+const ease = [0.22, 1, 0.36, 1] as const
+const reveal = {
+  hidden: { opacity: 0, y: 22 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease } },
 }
-
-const inactiveTab = 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-
-// ── Fade-up variant ───────────────────────────
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-}
-
-const stagger = {
-  show: { transition: { staggerChildren: 0.08 } },
-}
+const stagger = { show: { transition: { staggerChildren: 0.06 } } }
 
 // ── Resource Card ─────────────────────────────
-function ResourceCard({ item, color }: { item: ResourceItem; color: string }) {
+function ResourceCard({ item, downloadLabel }: { item: ResourceItem; downloadLabel: string }) {
   const TypeIcon = typeIconMap[item.type]
-  const colors = colorMap[color] ?? colorMap['blue']
-
   return (
     <motion.div
-      variants={fadeUp}
-      className={`group flex flex-col bg-white dark:bg-slate-800/60 border ${colors.card} rounded-xl p-4 hover:shadow-md dark:hover:shadow-slate-900/50 transition-all duration-200`}
+      variants={reveal}
+      className="group flex flex-col rounded-md border border-ink-200 bg-white p-5 transition-colors duration-200 hover:border-primary-600 dark:border-ink-800 dark:bg-ink-950/50 dark:hover:border-primary-400"
     >
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <TypeIcon size={15} className={`shrink-0 ${colors.icon}`} />
-          <h4 className="font-semibold text-slate-800 dark:text-white text-sm leading-tight line-clamp-2">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <TypeIcon size={15} className="shrink-0 text-primary-600 dark:text-primary-400" />
+          <h4 className="font-display text-base font-semibold leading-tight text-ink-950 dark:text-ink-50 line-clamp-2">
             {item.title}
           </h4>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {item.badge && (
-            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${colors.badge}`}>
-              {item.badge}
-            </span>
-          )}
-          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400`}>
-            {item.type}
-          </span>
-        </div>
+        <span className="eyebrow shrink-0 text-ink-500 dark:text-ink-400">{item.type}</span>
       </div>
 
-      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4 flex-1">
+      <p className="mb-4 flex-1 text-xs leading-relaxed text-ink-500 dark:text-ink-400">
         {item.description}
       </p>
 
-      <div className="flex items-center justify-between mt-auto">
-        {item.size && (
-          <span className="text-[11px] text-slate-400 dark:text-slate-500">{item.size}</span>
-        )}
+      <div className="mt-auto flex items-center justify-between border-t border-ink-100 pt-3 dark:border-ink-800">
+        <span className="flex items-center gap-2 text-[11px] text-ink-500 dark:text-ink-400">
+          {item.badge && (
+            <span className="rounded-full bg-ink-100 px-2 py-0.5 font-medium text-ink-600 dark:bg-ink-800 dark:text-ink-300">
+              {item.badge}
+            </span>
+          )}
+          {item.size}
+        </span>
         <a
           href={item.href}
           target="_blank"
           rel="noopener noreferrer"
-          className={`ml-auto inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg ${colors.badge} hover:opacity-90 transition-opacity`}
+          className="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
         >
-          <Download size={12} />
-          Download
+          {downloadLabel}
+          <ArrowUpRight
+            size={13}
+            className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          />
         </a>
       </div>
     </motion.div>
@@ -92,6 +74,7 @@ function ResourceCard({ item, color }: { item: ResourceItem; color: string }) {
 
 // ── Main component ────────────────────────────
 export default function Resources() {
+  const { lang } = useLanguage()
   const [activeId, setActiveId] = useState<string>(resourceCategories[0]?.id ?? '')
   const [query, setQuery] = useState('')
 
@@ -108,129 +91,127 @@ export default function Resources() {
     )
   }, [activeCategory, query])
 
-  const CategoryIcon = categoryIconMap[activeCategory.icon] ?? Monitor
-  const colors = colorMap[activeCategory.color] ?? colorMap['blue']
+  const catLabel = (id: string, fallback: string) =>
+    resources.categoryLabels[id]?.[lang] ?? fallback
 
   return (
-    <section id="resources" className="py-24 bg-white dark:bg-slate-900">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Section header */}
+    <section
+      id="resources"
+      className="bg-ink-50 py-16 text-ink-950 dark:bg-ink-950 dark:text-ink-50 sm:py-24 lg:py-32"
+    >
+      <div className="mx-auto max-w-6xl px-6 lg:px-8">
+        {/* ── Header ── */}
         <motion.div
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-80px' }}
           variants={stagger}
-          className="mb-12"
+          className="mb-12 max-w-2xl"
         >
-          <motion.p variants={fadeUp} className="text-sm font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-widest mb-2">
-            Teaching Materials
-          </motion.p>
-          <motion.h2 variants={fadeUp} className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-            Mockup Education Resources
-          </motion.h2>
-          <motion.p variants={fadeUp} className="text-slate-500 dark:text-slate-400 max-w-2xl">
-            Downloadable course slides, PDF handouts, lab files, and reference guides for my students.
-            Use the search or category tabs to find what you need quickly.
+          <motion.div
+            variants={reveal}
+            className="mb-6 flex items-center gap-4 text-ink-500 dark:text-ink-400"
+          >
+            <span className="section-index text-xs font-semibold text-primary-600 dark:text-primary-400">
+              {resources.index}
+            </span>
+            <DrawLine className="h-px w-10 bg-ink-300 dark:bg-ink-700" />
+            <span className="eyebrow">{resources.eyebrow[lang]}</span>
+          </motion.div>
+          <h2 className="font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">
+            <LineReveal>{resources.title[lang]}</LineReveal>
+          </h2>
+          <motion.p variants={reveal} className="mt-5 text-ink-600 dark:text-ink-300">
+            {resources.intro[lang]}
           </motion.p>
         </motion.div>
 
-        {/* Category tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4 }}
-          className="flex flex-wrap gap-2 mb-6"
-        >
-          {resourceCategories.map(cat => {
-            const Icon = categoryIconMap[cat.icon] ?? Monitor
-            const isActive = cat.id === activeId
-            const cColors = colorMap[cat.color] ?? colorMap['blue']
-            return (
-              <button
-                key={cat.id}
-                onClick={() => { setActiveId(cat.id); setQuery('') }}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${isActive ? cColors.tab : inactiveTab
+        {/* ── Controls: tabs + search ── */}
+        <div className="mb-10 flex flex-col gap-5 border-y border-ink-200 py-5 dark:border-ink-800 lg:flex-row lg:items-center lg:justify-between">
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-2">
+            {resourceCategories.map(cat => {
+              const Icon = categoryIconMap[cat.icon] ?? Monitor
+              const isActive = cat.id === activeId
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveId(cat.id); setQuery('') }}
+                  className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 ${
+                    isActive
+                      ? 'bg-ink-950 text-white dark:bg-white dark:text-ink-950'
+                      : 'border border-ink-200 text-ink-600 hover:border-ink-400 dark:border-ink-700 dark:text-ink-300 dark:hover:border-ink-500'
                   }`}
-              >
-                <Icon size={15} />
-                {cat.label}
-                <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${isActive ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
-                  {cat.items.length}
-                </span>
-              </button>
-            )
-          })}
-        </motion.div>
-
-        {/* Search bar */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-          className="relative mb-8"
-        >
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder={`Search in ${activeCategory.label}…`}
-            className="w-full sm:w-80 pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition"
-          />
-        </motion.div>
-
-        {/* Category meta */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.35 }}
-          className="flex items-center gap-3 mb-6"
-        >
-          <span className={`flex items-center justify-center w-10 h-10 rounded-xl ${colors.badge}`}>
-            <CategoryIcon size={20} />
-          </span>
-          <div>
-            <h3 className="font-bold text-slate-800 dark:text-white">{activeCategory.label}</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">{activeCategory.description}</p>
+                >
+                  <Icon size={15} />
+                  {catLabel(cat.id, cat.label)}
+                  <span
+                    className={`rounded-full px-1.5 text-[11px] font-bold ${
+                      isActive
+                        ? 'bg-white/20 dark:bg-ink-950/15'
+                        : 'text-ink-500 dark:text-ink-400'
+                    }`}
+                  >
+                    {cat.items.length}
+                  </span>
+                </button>
+              )
+            })}
           </div>
-          <ChevronRight size={16} className="text-slate-300 dark:text-slate-600 ml-auto" />
-          <span className="text-sm text-slate-400 dark:text-slate-500">
-            {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
-          </span>
-        </motion.div>
 
-        {/* Resource grid */}
+          {/* Search */}
+          <div className="relative lg:w-72">
+            <Search
+              size={16}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500 dark:text-ink-400"
+            />
+            <input
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder={resources.searchPlaceholder[lang]}
+              aria-label={resources.searchPlaceholder[lang]}
+              className="w-full rounded-full border border-ink-200 bg-white py-2.5 pl-10 pr-4 text-sm text-ink-900 transition placeholder:text-ink-500 focus:border-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-600/30 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-50 dark:placeholder:text-ink-400 dark:focus:border-primary-400"
+            />
+          </div>
+        </div>
+
+        {/* ── Active category meta ── */}
+        <div className="mb-6 flex items-baseline justify-between">
+          <p className="text-sm text-ink-500 dark:text-ink-400">
+            {activeCategory.description}
+          </p>
+          <span className="section-index shrink-0 text-xs text-ink-500 dark:text-ink-400">
+            {filteredItems.length} {resources.itemsLabel[lang]}
+          </span>
+        </div>
+
+        {/* ── Grid ── */}
         {filteredItems.length > 0 ? (
           <motion.div
             key={activeId + query}
             initial="hidden"
             animate="show"
             variants={stagger}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
           >
             {filteredItems.map(item => (
-              <ResourceCard key={item.title} item={item} color={activeCategory.color} />
+              <ResourceCard key={item.title} item={item} downloadLabel={resources.download[lang]} />
             ))}
           </motion.div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16 text-slate-400 dark:text-slate-500"
-          >
-            <Search size={40} className="mx-auto mb-3 opacity-40" />
-            <p className="font-medium">No materials found for "{query}"</p>
+          <div className="py-16 text-center text-ink-500 dark:text-ink-400">
+            <Search size={36} className="mx-auto mb-3 opacity-40" />
+            <p className="font-medium">
+              {resources.noResults[lang]} “{query}”
+            </p>
             <button
               onClick={() => setQuery('')}
-              className="mt-2 text-sm text-primary-500 hover:underline"
+              className="mt-2 cursor-pointer text-sm font-semibold text-primary-600 hover:underline dark:text-primary-400"
             >
-              Clear search
+              {resources.clearSearch[lang]}
             </button>
-          </motion.div>
+          </div>
         )}
       </div>
     </section>

@@ -1,261 +1,171 @@
 import { motion } from 'framer-motion'
-import { MapPin, Mail, Github, ChevronDown, BookOpen, User } from 'lucide-react'
-import { personalInfo, heroFloatingCards } from '../data/data'
+import { ArrowUpRight, ArrowDown } from 'lucide-react'
+import { personalInfo } from '../data/data'
+import { hero } from '../i18n/content'
+import { useLanguage } from '../i18n/LanguageContext'
+import { LineReveal, DrawLine } from '../lib/motion'
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  show:   { opacity: 1, y: 0 },
+const ease = [0.22, 1, 0.36, 1] as const
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
+}
+const item = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease } },
 }
 
-// ── Single mosaic photo cell ──────────────────
-function MosaicPhoto({
-  src,
-  alt,
-  labelEn,
-  labelTh,
-  emoji,
-  delay,
-  className = '',
-  imgPosition = 'object-top',
-}: {
-  src: string
-  alt: string
-  labelEn: string
-  labelTh: string
-  emoji: string
-  delay: number
-  className?: string
-  imgPosition?: string
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.92 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.55, delay, ease: 'easeOut' }}
-      className={`relative overflow-hidden rounded-2xl group cursor-default ${className}`}
-    >
-      {/* Photo */}
-      <img
-        src={src}
-        alt={alt}
-        className={`w-full h-full object-cover ${imgPosition} transition-transform duration-500 group-hover:scale-105`}
-      />
-
-      {/* Gradient overlay at bottom */}
-      <div className="absolute inset-x-0 bottom-0 h-2/5 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
-
-      {/* Label */}
-      <div className="absolute bottom-0 inset-x-0 p-3">
-        <p className="text-white font-bold text-[11px] sm:text-xs leading-tight">
-          {emoji} {labelEn}
-        </p>
-        <p className="text-white/70 text-[10px] leading-tight mt-0.5">{labelTh}</p>
-      </div>
-    </motion.div>
-  )
-}
-
-// ── Main Hero ─────────────────────────────────
 export default function Hero() {
-  const scrollTo = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+  const { lang } = useLanguage()
+
+  // Scroll to a section; fall back to a sibling if it doesn't exist yet
+  // (the Projects section is added in a later round).
+  const scrollTo = (id: string, fallback?: string) => {
+    const el = document.getElementById(id) ?? (fallback ? document.getElementById(fallback) : null)
+    el?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const leftCard  = heroFloatingCards.find(c => c.side === 'left')   // honor guard
-  const rightCard = heroFloatingCards.find(c => c.side === 'right')  // discharge
+  const headlineLines = hero.headline[lang]
+  const accent = hero.accentWord[lang]
 
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-slate-50 dark:bg-slate-950"
+      className="relative min-h-screen overflow-hidden bg-ink-50 dark:bg-ink-950 text-ink-950 dark:text-ink-50"
     >
-      {/* Background gradient blobs */}
-      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full bg-primary-200/40 dark:bg-primary-900/30 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full bg-indigo-200/40 dark:bg-indigo-900/20 blur-3xl" />
-        <div
-          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.07]"
-          style={{
-            backgroundImage:
-              'linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(to right, #4f46e5 1px, transparent 1px)',
-            backgroundSize: '64px 64px',
-          }}
-        />
-      </div>
+      {/* Faint editorial grid — restrained, decorative only */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.04] dark:opacity-[0.06]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, currentColor 1px, transparent 1px)',
+          backgroundSize: '12.5% 100%',
+        }}
+      />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-32 w-full">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-
-          {/* ── Left: Text content ── */}
+      <div className="mx-auto max-w-6xl px-6 lg:px-8">
+        <div className="grid min-h-screen grid-cols-1 items-center gap-12 pt-28 pb-20 lg:grid-cols-12 lg:gap-8">
+          {/* ── Left: editorial headline ── */}
           <motion.div
-            variants={{ show: { transition: { staggerChildren: 0.12 } } }}
+            variants={container}
             initial="hidden"
             animate="show"
-            className="order-2 lg:order-1"
+            className="lg:col-span-7"
           >
-            {/* Status badge */}
-            <motion.div variants={fadeUp} transition={{ duration: 0.5 }}>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary-100 dark:bg-primary-900/60 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800 mb-6">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
-                IT Instructor · {personalInfo.institutionShort}
-              </span>
-            </motion.div>
-
-            {/* Name */}
-            <motion.h1
-              variants={fadeUp}
-              transition={{ duration: 0.5 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white leading-tight mb-2"
-            >
-              {personalInfo.nameEn}
-            </motion.h1>
-
-            <motion.p
-              variants={fadeUp}
-              transition={{ duration: 0.5 }}
-              className="text-lg text-slate-500 dark:text-slate-400 font-medium mb-2"
-            >
-              {personalInfo.nameTh}
-            </motion.p>
-
-            <motion.p
-              variants={fadeUp}
-              transition={{ duration: 0.5 }}
-              className="text-xl text-primary-600 dark:text-primary-400 font-semibold mb-6"
-            >
-              {personalInfo.title} · {personalInfo.institution}
-            </motion.p>
-
-            {/* Bio */}
-            <motion.p
-              variants={fadeUp}
-              transition={{ duration: 0.5 }}
-              className="text-slate-600 dark:text-slate-300 leading-relaxed mb-8 max-w-xl"
-            >
-              {personalInfo.bio}
-            </motion.p>
-
-            {/* Meta */}
+            {/* Section index + eyebrow */}
             <motion.div
-              variants={fadeUp}
-              transition={{ duration: 0.5 }}
-              className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-8"
+              variants={item}
+              className="mb-8 flex items-center gap-4 text-ink-500 dark:text-ink-400"
             >
-              <span className="flex items-center gap-1.5">
-                <MapPin size={14} className="text-primary-500" />
-                {personalInfo.location}
+              <span className="section-index text-xs font-semibold text-primary-600 dark:text-primary-400">
+                01
               </span>
-              <a
-                href={`mailto:${personalInfo.email}`}
-                className="flex items-center gap-1.5 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-              >
-                <Mail size={14} className="text-primary-500" />
-                {personalInfo.email}
-              </a>
+              <DrawLine className="h-px w-10 bg-ink-300 dark:bg-ink-700" />
+              <span className="eyebrow">{hero.eyebrow[lang]}</span>
             </motion.div>
+
+            {/* Display headline — masked line-by-line rise */}
+            <h1 className="font-display text-[2.5rem] leading-[1.06] font-semibold sm:text-6xl lg:text-7xl">
+              {headlineLines.map((line, i) => (
+                <LineReveal
+                  key={i}
+                  delay={0.1 + i * 0.09}
+                  className={line === accent ? 'text-primary-600 dark:text-primary-400' : ''}
+                >
+                  {line}
+                </LineReveal>
+              ))}
+            </h1>
+
+            {/* Lead paragraph */}
+            <motion.p
+              variants={item}
+              className="mt-8 max-w-xl text-base leading-relaxed text-ink-600 dark:text-ink-300 sm:text-lg"
+            >
+              {hero.lead[lang]}
+            </motion.p>
 
             {/* CTAs */}
+            <motion.div variants={item} className="mt-10 flex flex-wrap items-center gap-4">
+              <button
+                onClick={() => scrollTo('projects', 'resources')}
+                className="group inline-flex cursor-pointer items-center gap-2 rounded-full bg-ink-950 px-6 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-primary-600 dark:bg-white dark:text-ink-950 dark:hover:bg-primary-500 dark:hover:text-white"
+              >
+                {hero.primaryCta[lang]}
+                <ArrowUpRight
+                  size={16}
+                  className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </button>
+              <button
+                onClick={() => scrollTo('contact')}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-ink-300 px-6 py-3 text-sm font-semibold text-ink-800 transition-colors duration-200 hover:border-ink-950 hover:bg-ink-100 dark:border-ink-700 dark:text-ink-100 dark:hover:border-ink-400 dark:hover:bg-ink-900"
+              >
+                {hero.secondaryCta[lang]}
+              </button>
+            </motion.div>
+
+            {/* Availability */}
             <motion.div
-              variants={fadeUp}
-              transition={{ duration: 0.5 }}
-              className="flex flex-wrap gap-3"
+              variants={item}
+              className="mt-8 flex items-center gap-2.5 text-sm text-ink-500 dark:text-ink-400"
             >
-              <button
-                onClick={() => scrollTo('resources')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 text-white font-semibold text-sm transition-colors shadow-lg shadow-primary-500/25"
-              >
-                <BookOpen size={16} />
-                View Resources
-              </button>
-              <button
-                onClick={() => scrollTo('about')}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-sm transition-colors"
-              >
-                <User size={16} />
-                About Me
-              </button>
-              <a
-                href={personalInfo.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium text-sm transition-colors"
-              >
-                <Github size={16} />
-                GitHub
-              </a>
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              {hero.available[lang]}
             </motion.div>
           </motion.div>
 
-          {/* ── Right: Mosaic photo grid ── */}
-          <div className="order-1 lg:order-2 flex justify-center">
-            {/*
-             * Grid layout:
-             *
-             *   ┌─────────────┬──────────┐
-             *   │             │ Military │
-             *   │  SBAC       │ (Honor   │
-             *   │  (main,     │ Guard)   │
-             *   │   tall)     ├──────────┤
-             *   │             │ Discharge│
-             *   └─────────────┴──────────┘
-             */}
-            <div
-              className="grid gap-2 sm:gap-3 w-full max-w-md"
-              style={{ gridTemplateColumns: '3fr 2fr', height: '420px' }}
-            >
-              {/* ── Main: SBAC photo ── */}
-              <MosaicPhoto
-                src={personalInfo.profileImage}
-                alt={`${personalInfo.nameEn} – IT Instructor at SBAC`}
-                labelEn="IT Instructor"
-                labelTh="@ SBAC"
-                emoji="👨‍🏫"
-                delay={0.2}
-                className="row-span-2"
-                imgPosition="object-top"
-              />
-
-              {/* ── Top-right: Honor guard ── */}
-              {leftCard && (
-                <MosaicPhoto
-                  src={leftCard.image}
-                  alt={leftCard.labelEn}
-                  labelEn={leftCard.labelEn}
-                  labelTh={leftCard.labelTh}
-                  emoji={leftCard.emoji}
-                  delay={0.38}
-                  imgPosition="object-top"
+          {/* ── Right: portrait, editorial frame ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease, delay: 0.25 }}
+            className="lg:col-span-5"
+          >
+            <figure className="relative mx-auto w-full max-w-sm">
+              {/* Offset accent block */}
+              <div className="absolute -right-3 -top-3 h-full w-full rounded-sm border border-primary-600/40 dark:border-primary-400/30" />
+              {/* Photo */}
+              <div className="relative overflow-hidden rounded-sm bg-ink-200 dark:bg-ink-800">
+                <img
+                  src={personalInfo.profileImage}
+                  alt={`${personalInfo.nameEn} — IT Instructor at SBAC`}
+                  className="aspect-[4/5] w-full object-cover object-top"
+                  loading="eager"
                 />
-              )}
-
-              {/* ── Bottom-right: Discharge day ── */}
-              {rightCard && (
-                <MosaicPhoto
-                  src={rightCard.image}
-                  alt={rightCard.labelEn}
-                  labelEn={rightCard.labelEn}
-                  labelTh={rightCard.labelTh}
-                  emoji={rightCard.emoji}
-                  delay={0.52}
-                  imgPosition="object-center"
-                />
-              )}
-            </div>
-          </div>
-
+                {/* Name plate */}
+                <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink-950/85 via-ink-950/30 to-transparent p-5">
+                  <p className="font-display text-xl font-semibold text-white">
+                    {lang === 'th' ? personalInfo.nameTh : personalInfo.nameEn}
+                  </p>
+                  <p className="mt-0.5 text-xs text-white/70">
+                    {lang === 'th' ? personalInfo.nameEn : personalInfo.nameTh}
+                  </p>
+                </figcaption>
+              </div>
+            </figure>
+          </motion.div>
         </div>
       </div>
 
       {/* Scroll cue */}
       <motion.button
-        onClick={() => scrollTo('resources')}
+        onClick={() => scrollTo('about')}
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, 6, 0] }}
-        transition={{ delay: 1.2, duration: 1.5, repeat: Infinity }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-400 dark:text-slate-500 hover:text-primary-500 transition-colors"
-        aria-label="Scroll down"
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.1, duration: 0.6 }}
+        aria-label="Scroll to next section"
+        className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 cursor-pointer items-center gap-2 text-xs font-medium tracking-wide text-ink-500 transition-colors hover:text-primary-600 dark:text-ink-400 dark:hover:text-primary-400 sm:flex"
       >
-        <ChevronDown size={28} />
+        <span className="eyebrow">{lang === 'th' ? 'เลื่อนลง' : 'Scroll'}</span>
+        <motion.span animate={{ y: [0, 5, 0] }} transition={{ duration: 1.6, repeat: Infinity }}>
+          <ArrowDown size={14} />
+        </motion.span>
       </motion.button>
     </section>
   )
